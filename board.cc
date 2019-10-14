@@ -254,6 +254,13 @@ bool Board::IsValidMove(int start_row, int start_col, int end_row, int end_col) 
   return false;
 }
 
+//TODO implement actual movement
+bool Board::MakeMove(int start_row, int start_col, int end_row, int end_col) {
+  throw std::runtime_error("MakeMove is not implemented yet");
+
+  return Board::IsValidMove(start_row, start_col, end_row, end_col);
+}
+
 Board::~Board() {
   for(int row = 0; row < kNumBoardRows; row++) {
     for(int col = 0; col < kNumBoardCols; col++) {
