@@ -54,6 +54,25 @@ Board::Board(const Board& other) {
   }
 }
 
+Board& Board::operator=(const Board& other) {
+  // For every square, delete what used to be there, then
+  // create a copy of every piece from the other board.
+  for(int row = 0; row < kNumBoardRows; row++) {
+    for(int col = 0; col < kNumBoardCols; col++) {
+      delete pieces_[row][col];
+
+      const Piece* other_piece = other.pieces_[row][col];
+      if(other_piece != nullptr) {
+        pieces_[row][col] = new Piece(*other_piece);
+      } else {
+        pieces_[row][col] = nullptr;
+      }
+    }
+  }
+
+  return *this;
+}
+
 std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
   for(int row = kNumBoardRows; row > 0; row--) {
     for(int col = 1; col <= kNumBoardCols; col++) {
@@ -64,6 +83,7 @@ std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
       }
 
       for(int render_row = kNumBoardRows; render_row > 0; render_row--) {
+        o << render_row << " ";
         for(int render_col = 1; render_col <= kNumBoardCols; render_col++) {
           const Piece* p = b.GetPieceAt(render_row, render_col);
           if(p != nullptr) {
@@ -82,6 +102,11 @@ std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
         }
 
         o << "\n";
+      }
+
+      o << " ";
+      for(int render_col = 1; render_col <= kNumBoardCols; render_col++) {
+        o << " " << render_col;
       }
 
       o << "\n";
@@ -257,6 +282,14 @@ const Piece* Board::GetPieceAt(int row, int col) const {
   return pieces_[row - 1][col - 1];
 }
 
+void Board::SetPieceAt(int row, int col, const Piece* piece) {
+  if(row < 1 || col < 1 || row > kNumBoardRows || col > kNumBoardCols) {
+    throw std::logic_error("Given row or column is out of bounds");
+  }
+
+  pieces_[row - 1][col - 1] = piece;
+}
+
 bool Board::IsValidMove(int start_row, int start_col, int end_row, int end_col) const {
   const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
@@ -289,11 +322,22 @@ bool Board::IsValidMove(int start_row, int start_col, int end_row, int end_col) 
   return false;
 }
 
-//TODO implement actual movement
 bool Board::MakeMove(int start_row, int start_col, int end_row, int end_col) {
-  throw std::runtime_error("MakeMove is not implemented yet");
+  if(!Board::IsValidMove(start_row, start_col, end_row, end_col)) {
+    return false;
+  }
 
-  return Board::IsValidMove(start_row, start_col, end_row, end_col);
+  const Piece* start_piece = GetPieceAt(start_row, start_col);
+  const Piece* end_piece = GetPieceAt(end_row, end_col);
+
+  // Free the piece that may or may not have been taken, assign
+  // nullptr (empty) to the moved from location, assigned the moved
+  // pieced to the moved to location.
+  delete end_piece;
+  SetPieceAt(start_row, start_col, nullptr);
+  SetPieceAt(end_row, end_col, start_piece);
+
+  return true;
 }
 
 Board::~Board() {

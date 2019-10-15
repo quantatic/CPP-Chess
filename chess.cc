@@ -4,13 +4,13 @@
 #include <iostream>
 
 int main() {
-  std::cout << "Hello, World!\n";
-  chess::Board b;
+   std::cout << "Hello, World!\n";
 
+   chess::Board b;
+   std::cout << b << "\n";
+
+   b.MakeMove(2, 4, 3, 4);
+   std::cout << b << "\n";
   
-  std::cout << b << "\n";
-  
-  // This will error out, as it is un-implemented behavior, as of now.
-  //b.MakeMove(1, 2, 3, 4);
   return 0;
 }

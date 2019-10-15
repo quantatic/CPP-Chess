@@ -17,6 +17,8 @@ class Board {
 	const Piece* pieces_[kNumBoardRows][kNumBoardCols];
 
 	const Piece* GetPieceAt(int row, int col) const;
+	void SetPieceAt(int row, int col, const Piece* piece);
+
 	bool IsValidMoveForPawn(int start_row, int start_col, int end_row, int end_col) const;
 	bool IsValidMoveForKing(int start_row, int start_col, int end_row, int end_col) const;
 	bool IsValidMoveForQueen(int start_row, int start_col, int end_row, int end_col) const;
@@ -27,6 +29,7 @@ class Board {
 public:
 	Board();
 	Board(const Board& other);
+	Board& operator=(const Board& other);
 
 	bool IsValidMove(int start_row, int start_col, int end_row, int end_col) const;
 	bool MakeMove(int start_row, int start_col, int end_row, int end_col);
