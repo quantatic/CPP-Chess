@@ -8,72 +8,49 @@
 namespace chess {
 
 Board::Board() {
-  for(int col = 0; col < kNumBoardCols; col++) {
-    for(int row = 0; row < kNumBoardRows; row++) {
-      pieces_[row][col] = nullptr;
-    }
-  }
 
   for(int col = 0; col < kNumBoardCols; col++) {
-    pieces_[1][col] = new Piece(PieceType::PAWN, PieceColor::WHITE);
-    pieces_[6][col] = new Piece(PieceType::PAWN, PieceColor::BLACK);
+    pieces_[1][col] = std::make_unique<const Piece>(PieceType::PAWN, PieceColor::WHITE);
+    pieces_[6][col] = std::make_unique<const Piece>(PieceType::PAWN, PieceColor::BLACK);
   }
 
-  pieces_[0][0] = new Piece(PieceType::ROOK, PieceColor::WHITE);
-  pieces_[0][1] = new Piece(PieceType::KNIGHT, PieceColor::WHITE);
-  pieces_[0][2] = new Piece(PieceType::BISHOP, PieceColor::WHITE);
-  pieces_[0][3] = new Piece(PieceType::KING, PieceColor::WHITE);
-  pieces_[0][4] = new Piece(PieceType::QUEEN, PieceColor::WHITE);
-  pieces_[0][5] = new Piece(PieceType::BISHOP, PieceColor::WHITE);
-  pieces_[0][6] = new Piece(PieceType::KNIGHT, PieceColor::WHITE);
-  pieces_[0][7] = new Piece(PieceType::ROOK, PieceColor::WHITE);
+  pieces_[0][0] = std::make_unique<const Piece>(PieceType::ROOK, PieceColor::WHITE);
+  pieces_[0][1] = std::make_unique<const Piece>(PieceType::KNIGHT, PieceColor::WHITE);
+  pieces_[0][2] = std::make_unique<const Piece>(PieceType::BISHOP, PieceColor::WHITE);
+  pieces_[0][3] = std::make_unique<const Piece>(PieceType::KING, PieceColor::WHITE);
+  pieces_[0][4] = std::make_unique<const Piece>(PieceType::QUEEN, PieceColor::WHITE);
+  pieces_[0][5] = std::make_unique<const Piece>(PieceType::BISHOP, PieceColor::WHITE);
+  pieces_[0][6] = std::make_unique<const Piece>(PieceType::KNIGHT, PieceColor::WHITE);
+  pieces_[0][7] = std::make_unique<const Piece>(PieceType::ROOK, PieceColor::WHITE);
 
-  pieces_[7][0] = new Piece(PieceType::ROOK, PieceColor::BLACK);
-  pieces_[7][1] = new Piece(PieceType::KNIGHT, PieceColor::BLACK);
-  pieces_[7][2] = new Piece(PieceType::BISHOP, PieceColor::BLACK);
-  pieces_[7][3] = new Piece(PieceType::KING, PieceColor::BLACK);
-  pieces_[7][4] = new Piece(PieceType::QUEEN, PieceColor::BLACK);
-  pieces_[7][5] = new Piece(PieceType::BISHOP, PieceColor::BLACK);
-  pieces_[7][6] = new Piece(PieceType::KNIGHT, PieceColor::BLACK);
-  pieces_[7][7] = new Piece(PieceType::ROOK, PieceColor::BLACK);
+  pieces_[7][0] = std::make_unique<const Piece>(PieceType::ROOK, PieceColor::BLACK);
+  pieces_[7][1] = std::make_unique<const Piece>(PieceType::KNIGHT, PieceColor::BLACK);
+  pieces_[7][2] = std::make_unique<const Piece>(PieceType::BISHOP, PieceColor::BLACK);
+  pieces_[7][3] = std::make_unique<const Piece>(PieceType::KING, PieceColor::BLACK);
+  pieces_[7][4] = std::make_unique<const Piece>(PieceType::QUEEN, PieceColor::BLACK);
+  pieces_[7][5] = std::make_unique<const Piece>(PieceType::BISHOP, PieceColor::BLACK);
+  pieces_[7][6] = std::make_unique<const Piece>(PieceType::KNIGHT, PieceColor::BLACK);
+  pieces_[7][7] = std::make_unique<const Piece>(PieceType::ROOK, PieceColor::BLACK);
 }
 
 Board::Board(const Board& other) {
-  // For each square on the old board, either create
-  // a new piece from the piece at that location, or
-  // copy over an empty square.
-  for(int col = 0; col < kNumBoardCols; col++) {
-    for(int row = 0; row < kNumBoardRows; row++) {
-      const Piece* other_piece = other.pieces_[row][col];
+  // For every square, either copy over the nullptr, or create a deep copy of
+  // the piece that resides there.
+  for(int row = 1; row <= kNumBoardRows; row++) {
+    for(int col = 1; col <= kNumBoardCols; col++) {
+      const Piece* other_piece = GetPieceAt(row, col);
       if(other_piece != nullptr) {
-        pieces_[row][col] = new Piece(*other_piece);
+        // Simply create a new unique_ptr at this location, utilizing the copy
+        // constructor of the old piece.
+        SetPieceAt(row, col, std::make_unique<const Piece>(*other_piece));
       } else {
-        pieces_[row][col] = nullptr;
+        SetPieceAt(row, col, nullptr);
       }
     }
   }
 }
 
-Board& Board::operator=(const Board& other) {
-  // For every square, delete what used to be there, then
-  // create a copy of every piece from the other board.
-  for(int row = 0; row < kNumBoardRows; row++) {
-    for(int col = 0; col < kNumBoardCols; col++) {
-      delete pieces_[row][col];
-
-      const Piece* other_piece = other.pieces_[row][col];
-      if(other_piece != nullptr) {
-        pieces_[row][col] = new Piece(*other_piece);
-      } else {
-        pieces_[row][col] = nullptr;
-      }
-    }
-  }
-
-  return *this;
-}
-
-std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
+/*std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
   for(int row = kNumBoardRows; row > 0; row--) {
     for(int col = 1; col <= kNumBoardCols; col++) {
 
@@ -110,8 +87,57 @@ std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
       }
 
       o << "\n";
+
+      o << "Taken Pieces: [";
+      if(b.taken_pieces_.size() > 0) {
+        o << *b.taken_pieces_[0];
+      }
+
+      for(auto i = b.taken_pieces_.begin() + 1; i < b.taken_pieces_.end(); i++) {
+        o << ", " << **i;
+      }
+
+      o << "]";
+
+      o << "\n";
     }
   }
+
+  return o;
+}*/
+
+std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
+  for(int render_row = kNumBoardRows; render_row > 0; render_row--) {
+    o << render_row << " ";
+    for(int render_col = 1; render_col <= kNumBoardCols; render_col++) {
+      const Piece* p = b.GetPieceAt(render_row, render_col);
+      if(p != nullptr) {
+        o << *p << " ";
+      } else {
+        o << ". ";
+      }
+    }
+
+    o << "\n";
+  }
+
+  o << " ";
+  for(int render_col = 1; render_col <= kNumBoardCols; render_col++) {
+    o << " " << render_col;
+  }
+
+  o << "\n";
+
+  o << "Taken Pieces: [";
+  if(b.taken_pieces_.size() > 0) {
+    o << *b.taken_pieces_[0];
+  }
+
+  for(auto i = b.taken_pieces_.begin() + 1; i < b.taken_pieces_.end(); i++) {
+    o << ", " << **i;
+  }
+
+  o << "]\n";
 
   return o;
 }
@@ -136,7 +162,7 @@ bool Board::IsValidMoveForPawn(int start_row, int start_col, int end_row, int en
   int delta_col = end_col - start_col;
 
   return delta_row == move_direction && delta_col == 0
-    && (end_piece == nullptr || end_piece->GetColor() != start_piece->GetColor());
+    && end_piece == nullptr;
 }
 
 bool Board::IsValidMoveForKing(int start_row, int start_col, int end_row, int end_col) const {
@@ -250,7 +276,7 @@ bool Board::IsValidMoveForRook(int start_row, int start_col, int end_row, int en
   if(delta_row != 0 && delta_col != 0) {
     return false;
   }
-  
+
   //get "signum" -> we're gonna iterate square by square over the movement path
   int tmp_delta_row = delta_row == 0 ? 0 : delta_row / std::abs(delta_row);
   int tmp_delta_col = delta_col == 0 ? 0 : delta_col / std::abs(delta_col);
@@ -279,15 +305,15 @@ const Piece* Board::GetPieceAt(int row, int col) const {
     throw std::logic_error("Given row or column is out of bounds");
   }
 
-  return pieces_[row - 1][col - 1];
+  return pieces_[row - 1][col - 1].get();
 }
 
-void Board::SetPieceAt(int row, int col, const Piece* piece) {
+void Board::SetPieceAt(int row, int col, std::unique_ptr<const Piece> piece) {
   if(row < 1 || col < 1 || row > kNumBoardRows || col > kNumBoardCols) {
     throw std::logic_error("Given row or column is out of bounds");
   }
 
-  pieces_[row - 1][col - 1] = piece;
+  pieces_[row - 1][col - 1] = std::move(piece);
 }
 
 bool Board::IsValidMove(int start_row, int start_col, int end_row, int end_col) const {
@@ -317,7 +343,6 @@ bool Board::IsValidMove(int start_row, int start_col, int end_row, int end_col) 
     case PieceType::PAWN:
       return IsValidMoveForPawn(start_row, start_col, end_row, end_col);
   }
-
   //NOTREACHED
   return false;
 }
@@ -327,23 +352,35 @@ bool Board::MakeMove(int start_row, int start_col, int end_row, int end_col) {
     return false;
   }
 
-  const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
 
-  // Free the piece that may or may not have been taken, assign
-  // nullptr (empty) to the moved from location, assigned the moved
-  // pieced to the moved to location.
-  delete end_piece;
-  SetPieceAt(start_row, start_col, nullptr);
-  SetPieceAt(end_row, end_col, start_piece);
+  // If we actually took a piece during this move, add the taken piece to the
+  // taken piece list. This also has the effect of moving ownership of the taken
+  // piece to the taken piece list.
+  //
+  // We have to get the piece manually from the piece array here, as we're
+  // actually concerned with ownership now.
+  if(end_piece != nullptr) {
+    taken_pieces_.push_back(std::move(pieces_[end_row - 1][end_col - 1]));
+  }
+
+  SetPieceAt(end_row, end_col, std::move(pieces_[start_row - 1][start_col - 1]));
 
   return true;
 }
 
-Board::~Board() {
-  for(int row = 0; row < kNumBoardRows; row++) {
-    for(int col = 0; col < kNumBoardCols; col++) {
-      delete pieces_[row][col];
+void Board::PlayGame() {
+  for(int i = 0; i < 5; i++) {
+    for(int piece_row = 1; piece_row <= kNumBoardRows; piece_row++) {
+      for(int piece_col = 1; piece_col <= kNumBoardCols; piece_col++) {
+        for(int move_row = 1; move_row <= kNumBoardRows; move_row++) {
+          for(int move_col = 1; move_col <= kNumBoardCols; move_col++) {
+            if(MakeMove(piece_row, piece_col, move_row, move_col)) {
+              std::cout << *this << "\n";
+            }
+          }
+        }
+      }
     }
   }
 }

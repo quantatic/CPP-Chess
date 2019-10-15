@@ -6,7 +6,7 @@ Piece::Piece(PieceType type, PieceColor color) :
   type_(type), color_(color)
 { };
 
-std::ostream& operator<<(std::ostream& o, const Piece& p) {
+/*std::ostream& operator<<(std::ostream& o, const Piece& p) {
   switch(p.color_) {
     case PieceColor::WHITE:
       o << "\033[37;1m";
@@ -24,7 +24,7 @@ std::ostream& operator<<(std::ostream& o, const Piece& p) {
       o << "K";
       break;
     case PieceType::QUEEN:
-      o << "Q";      
+      o << "Q";
       break;
     case PieceType::BISHOP:
       o << "B";
@@ -38,6 +38,59 @@ std::ostream& operator<<(std::ostream& o, const Piece& p) {
   }
 
   o << "\033[0m";
+
+  return o;
+}*/
+
+
+std::ostream& operator<<(std::ostream& o, const Piece& p) {
+  switch(p.color_) {
+    case PieceColor::WHITE:
+      switch(p.type_) {
+        case PieceType::KING:
+          o << "♔";
+          break;
+        case PieceType::QUEEN:
+          o << "♕";
+          break;
+        case PieceType::ROOK:
+          o << "♖";
+          break;
+        case PieceType::BISHOP:
+          o << "♗";
+          break;
+        case PieceType::KNIGHT:
+          o << "♘";
+          break;
+        case PieceType::PAWN:
+          o << "♙";
+          break;
+      }
+      break;
+
+    case PieceColor::BLACK:
+      switch(p.type_) {
+        case PieceType::KING:
+          o << "♚";
+          break;
+        case PieceType::QUEEN:
+          o << "♛";
+          break;
+        case PieceType::ROOK:
+          o << "♜";
+          break;
+        case PieceType::BISHOP:
+          o << "♝";
+          break;
+        case PieceType::KNIGHT:
+          o << "♞";
+          break;
+        case PieceType::PAWN:
+          o << "♟";
+          break;
+      }
+    break;
+  }
 
   return o;
 }

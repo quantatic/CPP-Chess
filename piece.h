@@ -4,31 +4,32 @@
 #include <iostream>
 
 namespace chess {
-	enum class PieceType {
-		KING,
-		QUEEN,
-		BISHOP,
-		KNIGHT,
-		ROOK,
-		PAWN,
-	};
 
-	enum class PieceColor {
-		WHITE,
-		BLACK,
-	};
+enum class PieceType {
+  KING,
+  QUEEN,
+  BISHOP,
+  KNIGHT,
+  ROOK,
+  PAWN,
+};
+
+enum class PieceColor {
+  WHITE,
+  BLACK,
+};
 
 
 class Piece {
-	PieceType type_;
-	PieceColor color_;
+  PieceType type_;
+  PieceColor color_;
 
 public:
-	Piece(PieceType type, PieceColor color);
-	PieceType GetType() const;
-	PieceColor GetColor() const;
+  Piece(PieceType type, PieceColor color);
+  PieceType GetType() const;
+  PieceColor GetColor() const;
 
-	friend std::ostream& operator<<(std::ostream& o, const Piece& p);
+  friend std::ostream& operator<<(std::ostream& o, const Piece& p);
 };
 
 }  // namespace chess
