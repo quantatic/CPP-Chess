@@ -38,25 +38,61 @@ Board::Board() {
   pieces_[7][7] = new Piece(PieceType::ROOK, PieceColor::BLACK);
 }
 
-std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
-  for(int row = kNumBoardRows - 1; row >= 0; row--) {
-    for(int col = 0; col < kNumBoardCols; col++) {
-      const Piece* p = b.pieces_[row][col];
-      if(p != nullptr) {
-        o << *p << " ";
+Board::Board(const Board& other) {
+  // For each square on the old board, either create
+  // a new piece from the piece at that location, or
+  // copy over an empty square.
+  for(int col = 0; col < kNumBoardCols; col++) {
+    for(int row = 0; row < kNumBoardRows; row++) {
+      const Piece* other_piece = other.pieces_[row][col];
+      if(other_piece != nullptr) {
+        pieces_[row][col] = new Piece(*other_piece);
       } else {
-        o << ". ";
+        pieces_[row][col] = nullptr;
       }
     }
+  }
+}
 
-    o << "\n";
+std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
+  for(int row = kNumBoardRows; row > 0; row--) {
+    for(int col = 1; col <= kNumBoardCols; col++) {
+
+      const Piece* this_piece = b.GetPieceAt(row, col);
+      if(this_piece == nullptr) {
+        continue;
+      }
+
+      for(int render_row = kNumBoardRows; render_row > 0; render_row--) {
+        for(int render_col = 1; render_col <= kNumBoardCols; render_col++) {
+          const Piece* p = b.GetPieceAt(render_row, render_col);
+          if(p != nullptr) {
+            if(p == this_piece || b.IsValidMove(row, col, render_row, render_col)) {
+              o << "\033[42;1m" << *p << "\033[0m" << " ";
+            } else {
+              o << *p << " ";
+            }
+          } else {
+            if(b.IsValidMove(row, col, render_row, render_col)) {
+              o << "\033[42;1m" << "." << "\033[0m" << " ";
+            } else {
+              o << ". ";
+            }
+          }
+        }
+
+        o << "\n";
+      }
+
+      o << "\n";
+    }
   }
 
   return o;
 }
 
 // TODO make this algorithm actually correct
-bool Board::IsValidMoveForPawn(int start_row, int start_col, int end_row, int end_col) {
+bool Board::IsValidMoveForPawn(int start_row, int start_col, int end_row, int end_col) const {
   const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
 
@@ -78,7 +114,7 @@ bool Board::IsValidMoveForPawn(int start_row, int start_col, int end_row, int en
     && (end_piece == nullptr || end_piece->GetColor() != start_piece->GetColor());
 }
 
-bool Board::IsValidMoveForKing(int start_row, int start_col, int end_row, int end_col) {
+bool Board::IsValidMoveForKing(int start_row, int start_col, int end_row, int end_col) const {
   const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
 
@@ -90,7 +126,7 @@ bool Board::IsValidMoveForKing(int start_row, int start_col, int end_row, int en
           || (end_piece->GetColor() != start_piece->GetColor()));
 }
 
-bool Board::IsValidMoveForQueen(int start_row, int start_col, int end_row, int end_col) {
+bool Board::IsValidMoveForQueen(int start_row, int start_col, int end_row, int end_col) const {
   const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
 
@@ -107,12 +143,12 @@ bool Board::IsValidMoveForQueen(int start_row, int start_col, int end_row, int e
   
   //get "signum" -> we're gonna iterate square by square over the movement path
   int tmp_delta_row = delta_row == 0 ? 0 : delta_row / std::abs(delta_row);
-  int tmp_delta_col = delta_col == 0 ? 0 : delta_row / std::abs(delta_row);
+  int tmp_delta_col = delta_col == 0 ? 0 : delta_col / std::abs(delta_col);
 
-  int tmp_row = start_row;
-  int tmp_col = start_col;
+  int tmp_row = start_row + tmp_delta_row;
+  int tmp_col = start_col + tmp_delta_col;
 
-  while(tmp_row != end_row && tmp_col != end_col) {
+  while(tmp_row != end_row || tmp_col != end_col) {
     const Piece* found_piece = GetPieceAt(tmp_row, tmp_col);
     // If we run into any piece, can't be a valid move
     if(found_piece != nullptr) {
@@ -127,7 +163,7 @@ bool Board::IsValidMoveForQueen(int start_row, int start_col, int end_row, int e
     || end_piece->GetColor() != start_piece->GetColor());
 }
 
-bool Board::IsValidMoveForBishop(int start_row, int start_col, int end_row, int end_col) {
+bool Board::IsValidMoveForBishop(int start_row, int start_col, int end_row, int end_col) const {
   const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
 
@@ -142,12 +178,12 @@ bool Board::IsValidMoveForBishop(int start_row, int start_col, int end_row, int 
   
   //get "signum" -> we're gonna iterate square by square over the movement path
   int tmp_delta_row = delta_row == 0 ? 0 : delta_row / std::abs(delta_row);
-  int tmp_delta_col = delta_col == 0 ? 0 : delta_row / std::abs(delta_row);
+  int tmp_delta_col = delta_col == 0 ? 0 : delta_col / std::abs(delta_col);
 
-  int tmp_row = start_row;
-  int tmp_col = start_col;
+  int tmp_row = start_row + tmp_delta_row;
+  int tmp_col = start_col + tmp_delta_col;
 
-  while(tmp_row != end_row && tmp_col != end_col) {
+  while(tmp_row != end_row || tmp_col != end_col) {
     const Piece* found_piece = GetPieceAt(tmp_row, tmp_col);
     // If we run into any piece, can't be a valid move
     if(found_piece != nullptr) {
@@ -162,23 +198,22 @@ bool Board::IsValidMoveForBishop(int start_row, int start_col, int end_row, int 
     || end_piece->GetColor() != start_piece->GetColor());
 }
 
-bool Board::IsValidMoveForKnight(int start_row, int start_col, int end_row, int end_col) {
+bool Board::IsValidMoveForKnight(int start_row, int start_col, int end_row, int end_col) const {
   const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
-
-  (void)start_piece;
-  (void)end_piece;
 
   int delta_row = end_row - start_row;
   int delta_col = end_col - start_col;
 
-  (void)delta_row;
-  (void)delta_col;
+  return ((std::abs(delta_row) == 2 && std::abs(delta_col) == 1)
+            || (std::abs(delta_row) == 1 && std::abs(delta_col) == 2))
+      && (end_piece == nullptr || end_piece->GetColor() != start_piece->GetColor());
+
 
   return false;
 }
 
-bool Board::IsValidMoveForRook(int start_row, int start_col, int end_row, int end_col) {
+bool Board::IsValidMoveForRook(int start_row, int start_col, int end_row, int end_col) const {
   const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
 
@@ -193,12 +228,12 @@ bool Board::IsValidMoveForRook(int start_row, int start_col, int end_row, int en
   
   //get "signum" -> we're gonna iterate square by square over the movement path
   int tmp_delta_row = delta_row == 0 ? 0 : delta_row / std::abs(delta_row);
-  int tmp_delta_col = delta_col == 0 ? 0 : delta_row / std::abs(delta_row);
+  int tmp_delta_col = delta_col == 0 ? 0 : delta_col / std::abs(delta_col);
 
-  int tmp_row = start_row;
-  int tmp_col = start_col;
+  int tmp_row = start_row + tmp_delta_row;
+  int tmp_col = start_col + tmp_delta_col;
 
-  while(tmp_row != end_row && tmp_col != end_col) {
+  while(tmp_row != end_row || tmp_col != end_col) {
     const Piece* found_piece = GetPieceAt(tmp_row, tmp_col);
     // If we run into any piece, can't be a valid move
     if(found_piece != nullptr) {
@@ -214,7 +249,7 @@ bool Board::IsValidMoveForRook(int start_row, int start_col, int end_row, int en
 }
 
 
-const Piece* Board::GetPieceAt(int row, int col) {
+const Piece* Board::GetPieceAt(int row, int col) const {
   if(row < 1 || col < 1 || row > kNumBoardRows || col > kNumBoardCols) {
     throw std::logic_error("Given row or column is out of bounds");
   }
@@ -222,7 +257,7 @@ const Piece* Board::GetPieceAt(int row, int col) {
   return pieces_[row - 1][col - 1];
 }
 
-bool Board::IsValidMove(int start_row, int start_col, int end_row, int end_col) {
+bool Board::IsValidMove(int start_row, int start_col, int end_row, int end_col) const {
   const Piece* start_piece = GetPieceAt(start_row, start_col);
   const Piece* end_piece = GetPieceAt(end_row, end_col);
 

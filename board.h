@@ -16,20 +16,23 @@ class Board {
 	// Access as pieces_[y][x] or pieces_[row][col]
 	const Piece* pieces_[kNumBoardRows][kNumBoardCols];
 
-	const Piece* GetPieceAt(int row, int col);
-	bool IsValidMoveForPawn(int start_row, int start_col, int end_row, int end_col);
-	bool IsValidMoveForKing(int start_row, int start_col, int end_row, int end_col);
-	bool IsValidMoveForQueen(int start_row, int start_col, int end_row, int end_col);
-	bool IsValidMoveForBishop(int start_row, int start_col, int end_row, int end_col);
-	bool IsValidMoveForKnight(int start_row, int start_col, int end_row, int end_col);
-	bool IsValidMoveForRook(int start_row, int start_col, int end_row, int end_col);
+	const Piece* GetPieceAt(int row, int col) const;
+	bool IsValidMoveForPawn(int start_row, int start_col, int end_row, int end_col) const;
+	bool IsValidMoveForKing(int start_row, int start_col, int end_row, int end_col) const;
+	bool IsValidMoveForQueen(int start_row, int start_col, int end_row, int end_col) const;
+	bool IsValidMoveForBishop(int start_row, int start_col, int end_row, int end_col) const;
+	bool IsValidMoveForKnight(int start_row, int start_col, int end_row, int end_col) const;
+	bool IsValidMoveForRook(int start_row, int start_col, int end_row, int end_col) const;
 
 public:
 	Board();
-	bool IsValidMove(int start_row, int start_col, int end_row, int end_col);
+	Board(const Board& other);
+
+	bool IsValidMove(int start_row, int start_col, int end_row, int end_col) const;
 	bool MakeMove(int start_row, int start_col, int end_row, int end_col);
 
 	friend std::ostream& operator<<(std::ostream& o, const Board& b);
+
 	~Board();
 };
 
