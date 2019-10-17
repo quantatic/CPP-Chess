@@ -6,7 +6,7 @@ Piece::Piece(PieceType type, PieceColor color) :
   type_(type), color_(color)
 { };
 
-/*std::ostream& operator<<(std::ostream& o, const Piece& p) {
+std::ostream& operator<<(std::ostream& o, const Piece& p) {
   switch(p.color_) {
     case PieceColor::WHITE:
       o << "\033[37;1m";
@@ -40,10 +40,10 @@ Piece::Piece(PieceType type, PieceColor color) :
   o << "\033[0m";
 
   return o;
-}*/
+}
 
 
-std::ostream& operator<<(std::ostream& o, const Piece& p) {
+/*std::ostream& operator<<(std::ostream& o, const Piece& p) {
   switch(p.color_) {
     case PieceColor::WHITE:
       switch(p.type_) {
@@ -93,7 +93,7 @@ std::ostream& operator<<(std::ostream& o, const Piece& p) {
   }
 
   return o;
-}
+}*/
 
 PieceType Piece::GetType() const {
   return type_;

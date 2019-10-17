@@ -1,9 +1,10 @@
 #include "board.h"
 #include "piece.h"
 
-#include <vector>
-#include <memory>
+#include <cassert>
 #include <exception>
+#include <memory>
+#include <vector>
 
 namespace chess {
 
@@ -38,7 +39,7 @@ Board::Board(const Board& other) {
   // the piece that resides there.
   for(int row = 1; row <= kNumBoardRows; row++) {
     for(int col = 1; col <= kNumBoardCols; col++) {
-      const Piece* other_piece = GetPieceAt(row, col);
+      const Piece* other_piece = other.GetPieceAt(row, col);
       if(other_piece != nullptr) {
         // Simply create a new unique_ptr at this location, utilizing the copy
         // constructor of the old piece.
@@ -48,63 +49,25 @@ Board::Board(const Board& other) {
       }
     }
   }
+
+  // For all the pieces in the other board's taken piece list,
+  // deep copy those here.
+  for(const std::unique_ptr<const Piece>& taken_piece : other.taken_pieces_) {
+    taken_pieces_.push_back(std::make_unique<const Piece>(*taken_piece));
+  }
 }
 
-/*std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
-  for(int row = kNumBoardRows; row > 0; row--) {
+Board::Board(Board&& other) {
+  for(int row = 1; row <= kNumBoardRows; row++) {
     for(int col = 1; col <= kNumBoardCols; col++) {
-
-      const Piece* this_piece = b.GetPieceAt(row, col);
-      if(this_piece == nullptr) {
-        continue;
-      }
-
-      for(int render_row = kNumBoardRows; render_row > 0; render_row--) {
-        o << render_row << " ";
-        for(int render_col = 1; render_col <= kNumBoardCols; render_col++) {
-          const Piece* p = b.GetPieceAt(render_row, render_col);
-          if(p != nullptr) {
-            if(p == this_piece || b.IsValidMove(row, col, render_row, render_col)) {
-              o << "\033[42;1m" << *p << "\033[0m" << " ";
-            } else {
-              o << *p << " ";
-            }
-          } else {
-            if(b.IsValidMove(row, col, render_row, render_col)) {
-              o << "\033[42;1m" << "." << "\033[0m" << " ";
-            } else {
-              o << ". ";
-            }
-          }
-        }
-
-        o << "\n";
-      }
-
-      o << " ";
-      for(int render_col = 1; render_col <= kNumBoardCols; render_col++) {
-        o << " " << render_col;
-      }
-
-      o << "\n";
-
-      o << "Taken Pieces: [";
-      if(b.taken_pieces_.size() > 0) {
-        o << *b.taken_pieces_[0];
-      }
-
-      for(auto i = b.taken_pieces_.begin() + 1; i < b.taken_pieces_.end(); i++) {
-        o << ", " << **i;
-      }
-
-      o << "]";
-
-      o << "\n";
+      // Move copy constructor, so we can steal pieces from the other board.
+      SetPieceAt(row, col, std::move(other.pieces_[row - 1][col - 1]));
     }
   }
 
-  return o;
-}*/
+  // Steal all of the taken pieces from the other board, no need to copy.
+  taken_pieces_ = std::move(other.taken_pieces_);
+}
 
 std::ostream& operator<<(std::ostream& o, const chess::Board& b) {
   for(int render_row = kNumBoardRows; render_row > 0; render_row--) {
@@ -156,6 +119,8 @@ bool Board::IsValidMoveForPawn(int start_row, int start_col, int end_row, int en
     case PieceColor::BLACK:
       move_direction = -1;
       break;
+    default:
+      assert(false);
   }
 
   int delta_row = end_row - start_row;

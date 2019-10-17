@@ -29,9 +29,19 @@ class Board {
   bool IsValidMoveForRook(int start_row, int start_col, int end_row, int end_col) const;
 
 public:
+  // Create a chess board with the default configuration of chess pieces.
   Board();
+
+  // Copy the pieces from the other board to this one. This performs a deep copy of all the pieces
+  // on the other board/taken pieces and the ones on this board will be brand new pieces.
   Board(const Board& other);
+
+  // Transfers all the pieces from the other board to this one, including pieces on the board and taken pieces.
+  // After this operation completes, the other board will be a valid board, just empty of pieces.
+  Board(Board&& other);
+
   Board& operator=(const Board& other) = delete;
+  Board& operator=(Board&& other) = delete;
 
   bool IsValidMove(int start_row, int start_col, int end_row, int end_col) const;
   bool MakeMove(int start_row, int start_col, int end_row, int end_col);
